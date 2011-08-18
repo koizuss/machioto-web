@@ -1,0 +1,2 @@
+=use eclipse
+play eclipsify
