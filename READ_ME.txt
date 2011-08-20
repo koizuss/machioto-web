@@ -2,4 +2,4 @@
 play eclipsify
 
 = deploy to gae
-play gae:deploy
+./deploy.sh

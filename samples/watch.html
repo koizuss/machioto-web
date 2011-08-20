@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Geolocation API（と GoogleMaps API V3）のデモ</title>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/prototype/1.6/prototype.js"></script>
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true&amp;language=ja"></script>
+<script type="text/javascript">
+var label, trigger, watcher, lastPos, map, gmap, coord, geocoder, startMarker, currentMarker, posHistory;
+function triggerWatch() {
+  trigger = document.getElementById('trigger');
+  label   = document.getElementById('trigger_label');
+  if (watcher == null) {
+    watcher = navigator.geolocation.watchPosition(moveTo, function(error){alert(error.message);}, {enableHighAccuracy: true});
+    trigger.innerHTML = '追跡終了';
+    label.innerHTML = '追跡中...';
+  } else {
+    navigator.geolocation.clearWatch(watcher);
+    watcher = null;
+    trigger.innerHTML = '追跡開始';
+    label.innerHTML = '追跡していません';
+  }
+}
+
+function moveTo(pos) {
+  if (lastPos != null) {
+    if (lastPos.latitude == pos.coords.latitude && lastPos.longitude == pos.coords.longitude) { return; }
+    coord = new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+    if (posHistory == null) {
+      posHistory = new google.maps.MVCArray([coord]);
+      new google.maps.Polyline({
+        clickable:   false,
+        map:         gmap,
+        path:        posHistory,
+        strokeColor: '#FFAA00'
+      });
+    } else {
+      posHistory.push(coord);
+    }
+  }
+  lastPos = pos.coords;
+  gmap.panTo(coord);
+  if (startMarker == null) {
+    startMarker = new google.maps.Marker({
+      map:       gmap,
+      position:  coord,
+      clickable: true,
+      draggable: false,
+      flat:      false,
+      visible:   true
+    });
+  } else {
+    if (currentMarker == null) {
+      currentMarker = new google.maps.Marker({
+        map:       gmap,
+        clickable: true,
+        draggable: false,
+        flat:      false,
+        visible:   true
+      });
+    }
+    currentMarker.setPosition(coord);
+  }
+  geocoder.geocode({language: 'ja', location: coord}, function(result){
+    var address = result.select(function(value, index) {
+      return value.types.include('sublocality');
+    }).sort(function(a,b){
+      if (a.address_components.length > b.address_components.length) {
+        return -1;
+      } else if (a.address_components.length < b.address_components.length) {
+        return 1;
+      } else {
+        return 0;
+      }
+    })[0].address_components.reverse().inject('', function(result, value, index){
+      if (!value.types.include('country')) { result += value.long_name; }
+      return result;
+    });
+    label.innerHTML = '追跡中（' + address + '付近）...';
+  });
+}
+
+google.maps.event.addDomListener(window, 'load', function(){
+  map = document.getElementById('map');
+  if (navigator.geolocation) {
+    geocoder = new google.maps.Geocoder();
+    lastPos  = null;
+    coord    = new google.maps.LatLng(35.7022592 , 139.5768798);
+    gmap     = new google.maps.Map(
+      map, {
+        zoom:         18,
+        center:       coord,
+        mapTypeId:    google.maps.MapTypeId.ROADMAP,
+        scaleControl: true,
+      }
+    );
+  } else {
+    var msg = '';
+    msg += 'お使いのブラウザは Geolocation API に対応していません。以下のブラウザでアクセスすれば動くかもしれません。';
+    msg += '<ul>';
+    msg += '  <li>Firefox 3.5〜</li>';
+    msg += '  <li>Google Chrome 5.0.375.70〜</li>';
+    msg += '  <li>Safari 5.0〜</li>';
+    msg += '  <li>Opera 10.60β〜</li>';
+    msg += '</ul>';
+    map.innerHTML = msg;
+  }
+});
+</script>
+</head>
+<body>
+<div id="map" style="width: 500px; height: 500px;"></div>
+<div id="trigger_label">追跡していません</div>
+<a id="trigger" href="javascript:void(0);" onclick="triggerWatch();">追跡開始</a>
+</body>
+</html>
