@@ -10,10 +10,10 @@ public class Entry extends Model {
     public Long id;
 	
 	public String url;
-    public Long latitude;
-    public Long longitude;
+    public Float latitude;
+    public Float longitude;
     
-	public Entry(String url, Long latitude, Long longitude) {
+	public Entry(String url, Float latitude, Float longitude) {
 		super();
 		this.url = url;
 		this.latitude = latitude;

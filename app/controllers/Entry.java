@@ -8,8 +8,12 @@ import java.util.*;
 import models.*;
 
 public class Entry extends Controller {
-	public static void put(String url, Long latitude, Long longitude) {
-    	new models.Entry(url, latitude, longitude).save();
-    	renderJSON(models.Entry.queryAll());
+	public static void put(String url, Float latitude, Float longitude) {
+		Logger.debug("url: %s, latitude: %s, latitude: %s", url, latitude, longitude);
+		
+		new models.Entry(url, latitude, longitude).save();
+		Logger.debug("save successful");
+		
+		renderJSON(models.Entry.queryAll());
     }
 }

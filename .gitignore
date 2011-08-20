@@ -4,3 +4,4 @@ tmp
 .settings/
 eclipse/
 precompiled/
+war/public/

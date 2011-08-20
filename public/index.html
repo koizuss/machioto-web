@@ -3,80 +3,124 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>place2play</title>
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
 <script type="text/javascript" src="javascripts/jquery-1.5.2.min.js"></script>
-<!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script> -->
 <script type="text/javascript">
 	var gps = navigator.geolocation;
-	var currentPosition = null;
-	
-	var successCallback = function(position){
-		currentPosition = position;
-		// alert('latitude: ' + position.coords.latitude + ', longitude: ' + position.coords.longitude);
-	};
-	
-	var errorCallback = function(error){
-		alert('code: ' + error.code + ', message: ' + error.message);
-	};
-	
-	var updatePosition = function(){
-		gps.getCurrentPosition(successCallback, errorCallback);
-	};
+	var geocoder;
 	
 	$(function(){
-		$('#position').click(function(){
-			// alert('search position');
-			updatePosition();
+		var searchResult = $('#search-result');
+		var auto = $('#auto');
+		
+		if(gps){
+			auto.attr('checked', 'checked');
+		}else{
+			auto.parent().remove();	
+		}
+		
+		$('#search').click(function(){
+			if(!geocoder){
+				geocoder = new google.maps.Geocoder();
+			}
+			// alert(geocoder);
+			geocoder.geocode( { 'address': $('#address').val() }, function(results, status) {
+				searchResult.find('dd').remove();
+				if(status == google.maps.GeocoderStatus.OK){
+					// alert('SUCCESS: ' + status);
+					$(results).each(function(){
+						$('<dd></dd>')
+							.append($('<input type="radio" name="place" />'))
+							.append($('<lavel></lavel>').text(this.formatted_address))
+							.append($('<input type="hidden" name="latitude" />').val(this.geometry.location.lat()))
+							.append($('<input type="hidden" name="longitude" />').val(this.geometry.location.lng()))
+							.appendTo(searchResult);
+						
+						searchResult.find('dd:first input:radio').attr('checked', 'checked');
+					});
+				}else{
+					// alert('ERROR: ' + status);
+					alert('Can not search place this address');
+				}
+			});
 		});
 		
-		$('#put-entry').click(function(){
-			// TODO: validation
-			gps.getCurrentPosition(
-					function(position){
-						var data = {
-							url: $('#url').val(),
-							latitude: position.coords.latitude,
-							longitude: position.coords.longitude,
-						};
-						
-						// TODO: change method
-						// TODO: callback function
-						$.ajax({
-							type: 'GET',
-							url: '/entry/put',
-							dataType: 'json',
-							data: data,
-							success: function(result){
-								$(result).each(function(){
-									alert(this.url);
-								});
-								},
-							error: function(obj, status, msg){ alert(status + ': ' + msg); },
-						});
+		var putEntry = function(latitude, longitude){
+			var data = {
+				url: $('#url').val(),
+				latitude: latitude,
+				longitude: longitude
+			};
+			
+			// TODO: callback function
+			$.ajax({
+				type: 'POST',
+				url: '/entry/put',
+				dataType: 'json',
+				data: data,
+				success: function(result){
+					$('#result tr:not(:has(th))').remove();
+					$(result).each(function(){
+						$('<tr></tr>')
+							.append($('<td></td>').text(this.url))
+							.append($('<td></td>').text(this.latitude))
+							.append($('<td></td>').text(this.longitude))
+							.appendTo($('#result'));
+					});
 					},
-					errorCallback);
-					// TODO: errorCallback
+				error: function(obj, status, msg){ alert(status + ': ' + msg); }
+			});
+		};
+		
+		$('#put-entry').click(function(){
+			alert(auto.attr('checked'));
+			// TODO: validation
+			if(auto.attr('checked')){
+				gps.getCurrentPosition(
+						function(position){
+							putEntry(position.coords.latitude, position.coords.longitude);
+						},
+						function(error){
+							alert('code: ' + error.code + ', message: ' + error.message);
+						},
+						{timeout: 5000});
+						// TODO: errorCallback
+			}else{
+				var place = $('input[name=place]:checked');
+				putEntry(
+						place.nextAll('[name=latitude]').val(),
+						place.nextAll('[name=longitude]').val()
+				);
+			}
 		});
 	});
-	// alert("test");
-	
-	// TODO:delete alert
-
 </script>
 </head>
 <body>
 <p>place2play<p>
-<form action="/application/index" method="post">
-<input type="submit" value="index"> 
-</form>
-<button id="position">update position</button>
+<hr>
+<div id="place-form">
+<p>place</p>
+<div>
+<input type="radio" name="place" id="auto" />
+<label>Auto</label>
+</div>
+<input type="text" id="address" size="70" />
+<button id="search">Search</button>
+<dl id="search-result"></dl>
+</div>
 <hr>
 <div id="put-entry-form">
 	<p>put entry</p>
 	<input id="url" type="text" size="70">
 	<button id="put-entry">done</button>
 </div>
-<hr>
-<ul id="list">
-</ul>
+<table id="result">
+<tr>
+<th>url</th>
+<th>latitude</th>
+<th>longitude</th>
+</tr>
+</table>
 </body>
 </html>
