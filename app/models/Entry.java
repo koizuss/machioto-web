@@ -29,4 +29,8 @@ public class Entry extends Model {
 		return Model.all(Entry.class).fetch();
 	}
 
+	public static Query<Entry> all() {
+		return Model.all(Entry.class);
+	}
+
 }

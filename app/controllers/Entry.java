@@ -8,12 +8,37 @@ import java.util.*;
 import models.*;
 
 public class Entry extends Controller {
-	public static void put(String url, Float latitude, Float longitude) {
-		Logger.debug("url: %s, latitude: %s, latitude: %s", url, latitude, longitude);
+	
+	private static final Float RANGE = 0.00277778F;
+	
+	public static void index(Float latitude, Float longitude){
+		Float latitudeMax = latitude + RANGE;
+		Float latitudeMin = latitude - RANGE;
+		Float longitudeMax = longitude + RANGE;
+		Float longitudeMin = longitude - RANGE;
 		
-		new models.Entry(url, latitude, longitude).save();
+		List<models.Entry> results = new ArrayList<models.Entry>();
+		for (models.Entry entry : models.Entry.all().fetch()) {
+			if(entry.latitude != null
+				&& entry.longitude != null
+				&& entry.latitude < latitudeMax
+				&& entry.latitude > latitudeMin
+				&& entry.longitude < longitudeMax
+				&& entry.longitude > longitudeMin){
+				results.add(entry);
+			}
+		}
+		// TODO: motto iihouhou naino??
+		
+		renderJSON(results);
+	}
+	
+	public static void put(models.Entry entry) {
+		Logger.debug("url: %s, latitude: %s, latitude: %s", entry.url, entry.latitude, entry.longitude);
+		
+		entry.save();
 		Logger.debug("save successful");
 		
-		renderJSON(models.Entry.queryAll());
+		index(entry.latitude, entry.longitude);
     }
 }

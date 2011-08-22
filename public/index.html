@@ -12,6 +12,73 @@
 	$(function(){
 		var searchResult = $('#search-result');
 		var auto = $('#auto');
+		var results = $('#results');
+		
+		var getPosition = function(callback){
+			if(auto.attr('checked')){
+				gps.getCurrentPosition(
+						function(position){
+							callback(position.coords.latitude,
+									position.coords.longitude);
+						},
+						function(error){
+							alert('code: ' + error.code + ', message: ' + error.message);
+						},
+						{timeout: 10000});
+						// TODO: errorCallback
+			}else{
+				var place = $('input[name=place]:checked');
+				callback(place.nextAll('[name=latitude]').val(),
+						place.nextAll('[name=longitude]').val());
+			}
+		};
+		
+		var updateEntries = function(entries){
+			results.find('tr:not(:has(th))').remove();
+			$(entries).each(function(){
+				$('<tr></tr>')
+					.append($('<td></td>').text(this.url))
+					.append($('<td></td>').text(this.latitude))
+					.append($('<td></td>').text(this.longitude))
+					.appendTo(results);
+			});
+		};
+		
+		// TODO: refactering ajax
+		var putEntry = function(latitude, longitude){
+			var data = {
+				'entry.url': $('#url').val(),
+				'entry.latitude': latitude,
+				'entry.longitude': longitude
+			};
+			
+			// TODO: callback function
+			$.ajax({
+				type: 'POST',
+				url: '/entry/put',
+				dataType: 'json',
+				data: data,
+				success: function(results){ updateEntries(results) },
+				error: function(obj, status, msg){ alert(status + ': ' + msg); }
+			});
+		};
+		
+		var fetchEntries = function(latitude, longitude){
+			var data = {
+				latitude: latitude,
+				longitude: longitude
+			};
+			
+			// TODO: callback function
+			$.ajax({
+				type: 'POST',
+				url: '/entry/index',
+				dataType: 'json',
+				data: data,
+				success: function(results){ updateEntries(results) },
+				error: function(obj, status, msg){ alert(status + ': ' + msg); }
+			});
+		}
 		
 		if(gps){
 			auto.attr('checked', 'checked');
@@ -24,7 +91,7 @@
 				geocoder = new google.maps.Geocoder();
 			}
 			// alert(geocoder);
-			geocoder.geocode( { 'address': $('#address').val() }, function(results, status) {
+			geocoder.geocode( { address: $('#address').val() }, function(results, status) {
 				searchResult.find('dd').remove();
 				if(status == google.maps.GeocoderStatus.OK){
 					// alert('SUCCESS: ' + status);
@@ -45,53 +112,14 @@
 			});
 		});
 		
-		var putEntry = function(latitude, longitude){
-			var data = {
-				url: $('#url').val(),
-				latitude: latitude,
-				longitude: longitude
-			};
-			
-			// TODO: callback function
-			$.ajax({
-				type: 'POST',
-				url: '/entry/put',
-				dataType: 'json',
-				data: data,
-				success: function(result){
-					$('#result tr:not(:has(th))').remove();
-					$(result).each(function(){
-						$('<tr></tr>')
-							.append($('<td></td>').text(this.url))
-							.append($('<td></td>').text(this.latitude))
-							.append($('<td></td>').text(this.longitude))
-							.appendTo($('#result'));
-					});
-					},
-				error: function(obj, status, msg){ alert(status + ': ' + msg); }
-			});
-		};
-		
 		$('#put-entry').click(function(){
-			alert(auto.attr('checked'));
 			// TODO: validation
-			if(auto.attr('checked')){
-				gps.getCurrentPosition(
-						function(position){
-							putEntry(position.coords.latitude, position.coords.longitude);
-						},
-						function(error){
-							alert('code: ' + error.code + ', message: ' + error.message);
-						},
-						{timeout: 5000});
-						// TODO: errorCallback
-			}else{
-				var place = $('input[name=place]:checked');
-				putEntry(
-						place.nextAll('[name=latitude]').val(),
-						place.nextAll('[name=longitude]').val()
-				);
-			}
+			getPosition(putEntry);
+		});
+		
+		$('#update-entries').click(function(){
+			// TODO: validation
+			getPosition(fetchEntries);
 		});
 	});
 </script>
@@ -115,7 +143,9 @@
 	<input id="url" type="text" size="70">
 	<button id="put-entry">done</button>
 </div>
-<table id="result">
+<hr>
+<button id="update-entries">update</button>
+<table id="results">
 <tr>
 <th>url</th>
 <th>latitude</th>
