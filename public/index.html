@@ -3,16 +3,22 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>place2play</title>
+<link rel="stylesheet" href="lib/prettyPhoto_compressed_3.1.3/css/prettyPhoto.css" type="text/css" media="screen" charset="utf-8" />
 <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
-<script type="text/javascript" src="javascripts/jquery-1.5.2.min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+<script src="lib/prettyPhoto_compressed_3.1.3/js/jquery.prettyPhoto.js" type="text/javascript" charset="utf-8"></script>
 <script type="text/javascript">
 	var gps = navigator.geolocation;
 	var geocoder;
+	
+	var youtubeSearchUrl = 'http://gdata.youtube.com/feeds/api/videos/$$id?alt=json';
+	var youtubeThumbnail = 'http://i.ytimg.com/vi/$$id/default.jpg';
 	
 	$(function(){
 		var searchResult = $('#search-result');
 		var auto = $('#auto');
 		var results = $('#results');
+		var timeout = 10000
 		
 		var getPosition = function(callback){
 			if(auto.attr('checked')){
@@ -24,7 +30,7 @@
 						function(error){
 							alert('code: ' + error.code + ', message: ' + error.message);
 						},
-						{timeout: 10000});
+						{timeout: timeout});
 						// TODO: errorCallback
 			}else{
 				var place = $('input[name=place]:checked');
@@ -34,32 +40,59 @@
 		};
 		
 		var updateEntries = function(entries){
-			results.find('tr:not(:has(th))').remove();
+			results.find('dd').remove();
 			$(entries).each(function(){
-				$('<tr></tr>')
-					.append($('<td></td>').text(this.url))
-					.append($('<td></td>').text(this.latitude))
-					.append($('<td></td>').text(this.longitude))
+				$('<dd></dd>')
+					.append(
+						$('<a></a>')
+							.attr('href', 'http://www.youtube.com/watch?v=' + this.youtubeId)
+							.attr('rel', 'prettyPhoto')
+							.attr('title', '')
+							.append(
+								$('<img />')
+									.attr('src', 'http://i.ytimg.com/vi/' + this.youtubeId + '/0.jpg')
+									.attr('alt', this.title)
+									.attr('height', 90)
+									.attr('width', 120)
+								)
+							.append($('<b></b>').text(this.title))
+							.prettyPhoto({theme:'dark_rounded'})
+							)
 					.appendTo(results);
 			});
 		};
 		
 		// TODO: refactering ajax
 		var putEntry = function(latitude, longitude){
-			var data = {
-				'entry.url': $('#url').val(),
-				'entry.latitude': latitude,
-				'entry.longitude': longitude
-			};
+
+			var youtubeId = $('#url').val().replace(/.*v=(.+)&?/, '$1');
 			
-			// TODO: callback function
 			$.ajax({
-				type: 'POST',
-				url: '/entry/put',
+				type: 'GET',
+				url: 'http://gdata.youtube.com/feeds/api/videos/' + youtubeId,
 				dataType: 'json',
-				data: data,
-				success: function(results){ updateEntries(results) },
-				error: function(obj, status, msg){ alert(status + ': ' + msg); }
+				data: {alt: 'json'},
+				success: function(result){
+					var data = {
+		 				'entry.youtubeId': youtubeId,
+		 				'entry.title': result.entry.title.$t,
+		 				'entry.latitude': latitude,
+		 				'entry.longitude': longitude
+		 			};
+					
+					// TODO: callback function
+					$.ajax({
+						type: 'POST',
+						url: '/entry/put',
+						dataType: 'json',
+						data: data,
+						success: function(results){ updateEntries(results) },
+						error: function(obj, status, msg){ alert(status + ': ' + msg); },
+						timeout: timeout
+					});
+				},
+				error: function(obj, status, msg){ alert(status + ': ' + msg); },
+				timeout: timeout
 			});
 		};
 		
@@ -76,7 +109,8 @@
 				dataType: 'json',
 				data: data,
 				success: function(results){ updateEntries(results) },
-				error: function(obj, status, msg){ alert(status + ': ' + msg); }
+				error: function(obj, status, msg){ alert(status + ': ' + msg); },
+				timeout: timeout
 			});
 		}
 		
@@ -91,6 +125,7 @@
 				geocoder = new google.maps.Geocoder();
 			}
 			// alert(geocoder);
+			// TODO: timeout??
 			geocoder.geocode( { address: $('#address').val() }, function(results, status) {
 				searchResult.find('dd').remove();
 				if(status == google.maps.GeocoderStatus.OK){
@@ -139,18 +174,13 @@
 </div>
 <hr>
 <div id="put-entry-form">
-	<p>put entry</p>
-	<input id="url" type="text" size="70">
-	<button id="put-entry">done</button>
+<p>put entry</p>
+<input id="url" type="text" size="70">
+<button id="put-entry">done</button>
+<a href="http://www.youtube.com/" target="_blank">Search on Youtube</a>
 </div>
 <hr>
 <button id="update-entries">update</button>
-<table id="results">
-<tr>
-<th>url</th>
-<th>latitude</th>
-<th>longitude</th>
-</tr>
-</table>
+<dl id="results"></dl>
 </body>
 </html>

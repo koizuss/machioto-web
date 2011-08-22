@@ -34,11 +34,7 @@ public class Entry extends Controller {
 	}
 	
 	public static void put(models.Entry entry) {
-		Logger.debug("url: %s, latitude: %s, latitude: %s", entry.url, entry.latitude, entry.longitude);
-		
 		entry.save();
-		Logger.debug("save successful");
-		
 		index(entry.latitude, entry.longitude);
     }
 }
