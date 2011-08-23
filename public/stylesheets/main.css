@@ -1,0 +1,108 @@
+body {
+	background-image:url(../images/bg.gif);
+	background-repeat:repeat;
+}
+
+h1.letterpress {
+	font-size:50px;
+	font-family: Arial, Helvetica, sans-serif;
+	color: #504f4f;
+	text-shadow: 0px 2px 1px #bbbaba; 
+}
+
+.box 
+{
+  position: relative;
+  background: #ddd;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  padding: 2em 1.5em;
+  color: rgba(0,0,0, .8);
+  text-shadow: 0 1px 0 #fff;
+  line-height: 1.5;
+}
+
+.entry{
+  width: 60%;
+  margin: 20px auto;
+}
+
+.entry h2{
+	position: absolute;
+	top: 15px;
+	left: 160px;
+	display: inline;
+}
+.entry p{
+	position: absolute;
+	top: 60px;
+	left: 180px;
+	display: inline;
+}
+
+.form{
+  width: 450px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin-right: 20px;
+  margin-left: auto;
+}
+
+.form .title {
+  	position: absolute;
+	top: -10px;
+	left: 20px;
+	display: inline;
+}
+
+.form .inner {
+	margin-top: 10px;
+	margin-bottom: -10px;
+  	margin-left: 10px;
+}
+
+#place-summary{
+    position: absolute;
+	top: 11px;
+	left: 120px;	
+}
+
+#place-edit{
+    margin-left: 10px;	
+}
+
+#place-name.error{
+	color: red;
+}
+
+.box:before, .box:after 
+{
+  z-index: -1; 
+  position: absolute; 
+  content: "";
+  bottom: 15px;
+  left: 10px;
+  width: 50%; 
+  top: 80%;
+  max-width:300px;
+  background: rgba(0, 0, 0, 0.7); 
+  -webkit-box-shadow: 0 15px 10px rgba(0,0,0, 0.7);   
+  -moz-box-shadow: 0 15px 10px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 15px 10px rgba(0, 0, 0, 0.7);
+  -webkit-transform: rotate(-3deg);    
+  -moz-transform: rotate(-3deg);   
+  -o-transform: rotate(-3deg);
+  -ms-transform: rotate(-3deg);
+  transform: rotate(-3deg);
+}
+
+.box:after 
+{
+  -webkit-transform: rotate(3deg);
+  -moz-transform: rotate(3deg);
+  -o-transform: rotate(3deg);
+  -ms-transform: rotate(3deg);
+  transform: rotate(3deg);
+  right: 10px;
+  left: auto;
+}
