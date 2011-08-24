@@ -119,8 +119,10 @@ $(function(){
 	
 	// TODO: refactering ajax
 	var putEntry = function(latitude, longitude){
-
+		var url = $('#url').val();
 		var youtubeId = $('#url').val().replace(/.*v=([^\&]+)&?.*/, '$1');
+		$('#url').val('');
+		
 		// alert(youtubeId);
 		$.ajax({
 			type: 'GET',
@@ -144,6 +146,7 @@ $(function(){
 					success: function(results){ updateEntries(results) },
 					error: function(obj, status, msg){
 						// alert('/entry/put;' + status + ': ' + msg);
+						$('#url').val(url);
 						showDialog("put entry failed.");
 					},
 					timeout: timeout
@@ -151,6 +154,7 @@ $(function(){
 			},
 			error: function(obj, status, msg){
 				// alert('http://gdata.youtube.com/feeds/api/videos/;' + status + ': ' + msg);
+				$('#url').val(url);
 				showDialog("Can't get Youtube data.");
 				},
 			timeout: timeout
