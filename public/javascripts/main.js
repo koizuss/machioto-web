@@ -254,5 +254,5 @@ $(function(){
 	$('#update').button();
 	dialog
 		.dialog('destroy')
-		.dialog({modal: true});
+		.dialog({modal: true, autoOpen: false});
 });
