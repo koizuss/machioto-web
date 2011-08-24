@@ -18,7 +18,7 @@ public class Entry extends Controller {
 		Float longitudeMin = longitude - RANGE;
 		
 		List<models.Entry> results = new ArrayList<models.Entry>();
-		for (models.Entry entry : models.Entry.all().fetch()) {
+		for (models.Entry entry : models.Entry.all().order("-modified").fetch()) {
 			if(entry.latitude != null
 				&& entry.longitude != null
 				&& entry.latitude < latitudeMax
@@ -34,7 +34,14 @@ public class Entry extends Controller {
 	}
 	
 	public static void put(models.Entry entry) {
+		Date now = new Date();
+		entry.created = now;
+		entry.modified = now;
 		entry.save();
 		index(entry.latitude, entry.longitude);
     }
+	
+	public static void all(){
+		renderJSON(models.Entry.all().fetch());
+	}
 }

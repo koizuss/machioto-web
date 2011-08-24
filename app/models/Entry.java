@@ -1,5 +1,6 @@
 package models;
 
+import java.util.Date;
 import java.util.List;
 
 import siena.*;
@@ -13,6 +14,8 @@ public class Entry extends Model {
 	public String title;
     public Float latitude;
     public Float longitude;
+    public Date created;
+    public Date modified;
     
 	@Override
 	public String toString() {
