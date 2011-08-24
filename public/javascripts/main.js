@@ -120,6 +120,11 @@ $(function(){
 	// TODO: refactering ajax
 	var putEntry = function(latitude, longitude){
 		var url = $('#url').val();
+		if(!url || url == ''){
+			showDialog("Please set entry url");
+			return;
+		}
+		
 		var youtubeId = $('#url').val().replace(/.*v=([^\&]+)&?.*/, '$1');
 		$('#url').val('');
 		
