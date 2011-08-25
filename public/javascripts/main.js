@@ -10,9 +10,9 @@ $(function(){
 	var dialog = $('#dialog');
 	// var timer = 0;
 	
-	var showDialog = function(message){
+	var openDialog = function(message){
 		dialog
-			.find('p').text(message)
+			.find('p').text(message).end()
 			.dialog('open');
 	}
 	
@@ -74,7 +74,7 @@ $(function(){
 					},
 					function(error){
 						// alert('code: ' + error.code + ', message: ' + error.message);
-						showDialog("Can't get your place. Please set other place.");
+						openDialog("Can't get your place. Please set other place.");
 						auto.removeAttr('checked');
 						updatePlaceName();
 						showSerchPlaceForm();
@@ -121,7 +121,7 @@ $(function(){
 	var putEntry = function(latitude, longitude){
 		var url = $('#url').val();
 		if(!url || url == ''){
-			showDialog("Please set entry url");
+			openDialog("Please set entry url");
 			return;
 		}
 		
@@ -152,7 +152,7 @@ $(function(){
 					error: function(obj, status, msg){
 						// alert('/entry/put;' + status + ': ' + msg);
 						$('#url').val(url);
-						showDialog("put entry failed.");
+						openDialog("put entry failed.");
 					},
 					timeout: timeout
 				});
@@ -160,7 +160,7 @@ $(function(){
 			error: function(obj, status, msg){
 				// alert('http://gdata.youtube.com/feeds/api/videos/;' + status + ': ' + msg);
 				$('#url').val(url);
-				showDialog("Can't get Youtube data.");
+				openDialog("Can't get Youtube data.");
 				},
 			timeout: timeout
 		});
@@ -181,7 +181,7 @@ $(function(){
 			success: function(results){ updateEntries(results) },
 			error: function(obj, status, msg){
 				// alert(status + ': ' + msg);
-				showDialog("Can't get entries.");
+				openDialog("Can't get entries.");
 				},
 			timeout: timeout
 		});
@@ -246,7 +246,7 @@ $(function(){
 				});
 			}else{
 				// alert('ERROR: ' + status);
-				showDialog('Can not search place this address.');
+				openDialog('Can not search place this address.');
 			}
 		});
 	});
